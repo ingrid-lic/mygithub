@@ -1,42 +1,3 @@
-/*.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}*/
-
 
 header {
   background-color: #222;
@@ -56,25 +17,8 @@ header {
   cursor: pointer;
 }
 
-.cart-action-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cart-count-button {
-  background-color: red;
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.3rem 0.6rem;
-  border: none;
-  border-radius: 12px;
-  cursor: default;
-}
-
 
 .section-title {
-  font-family: 'Noto Sans KR', sans-serif;
   font-size: 1rem;
   font-weight: 500;
   color: #333;
@@ -122,7 +66,7 @@ body {
   position: absolute;         /* 위치 절대 지정 */
   bottom: 0.6rem;             /* 아래로부터 거리 */
   left: 0.6rem;               /* 왼쪽으로부터 거리 */
-  background-color: black;
+  background-color: #E91E63;
   color: white;
   font-size: 0.8rem;
   padding: 0.4rem 0.8rem;
@@ -130,16 +74,6 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
-
-.cart-container {
-  position: relative;
-}
-
-.add-to-cart.clicked {
-  background-color: #ccc;
-  color: black;
-}
-
 
 .product-item img {
   width: 100%;
@@ -160,3 +94,5 @@ body {
   color: #888; /* 연한 회색 */
   margin-bottom: 0.5rem;
 }
+
+
