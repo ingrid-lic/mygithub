@@ -1,0 +1,131 @@
+.card-add-container {
+  max-width: 600px;
+  height: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+
+.card-visual {
+  background-color: #111;
+  border-radius: 16px;
+  height: 250px;
+  width: 450px;
+  margin: 2rem auto;
+  padding: 1rem;
+  position: relative;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 60px;
+}
+
+.card-chip {
+  width: 40px;
+  height: 30px;
+  background-color: gold;
+  border-radius: 5px;
+  position: absolute;         
+  left: 20px;                
+  top: 50%;                   
+  transform: translateY(-50%); 
+  z-index: 10;
+}
+
+.card-info-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-family: 'Courier New', monospace;
+  margin-top: 160px;
+}
+
+.display-number {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+.display-owner,
+.display-expiry {
+  font-size: 0.9rem;
+}
+
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.card-input-row {
+  display: flex;
+  flex-wrap: nowrap;        
+  justify-content: left;     
+  gap: 8px;                    
+  max-width: 100%;            
+}
+
+.card-input-box {
+  width: 68px;            
+  padding: 8px;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.password-fields {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.password-fields input {
+  width: 40px;
+  padding: 0.6rem;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.card-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-form input {
+  margin-top: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.submit-button {
+  margin-top: 2rem;
+  padding: 0.8rem;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}

@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import CardForm from './pages/CardForm';
+import CardAdd from './pages/CardAdd';
+import CardList from './pages/CardList';
+import { CardProvider } from './context/CardContext';
 import './App.css';
 
 const products = [
@@ -72,18 +78,29 @@ function SectionTitle({ total }) {
 }
 
 function ProductItem({ product, isAdded, onAdd }) {
+  const navigate = useNavigate();
+
+  const handlePurchaseClick = () => {
+    navigate('/card-form');
+  };
+
   return (
     <div className="product-item">
       <img src={product.image} alt={`상품 이미지 ${product.id}`} />
       <h2 className="product-name">{product.brand}</h2>
       <p className="product-desc">{product.desc}</p>
       <p className="price">{product.price}</p>
-      <button
-        className={`add-to-cart ${isAdded ? 'clicked' : ''}`}
-        onClick={() => onAdd(product.id)}
-      >
-        {isAdded ? '담김!' : '담기'}
-      </button>
+      <div className="button-group">
+        <button
+          className={`add-to-cart ${isAdded ? 'clicked' : ''}`}
+          onClick={() => onAdd(product.id)}
+        >
+          {isAdded ? '담김!' : '담기'}
+        </button>
+        <button className="purchase-button" onClick={handlePurchaseClick}>
+          구매
+        </button>
+      </div>
     </div>
   );
 }
@@ -114,18 +131,34 @@ function App() {
     }
   };
 
-  return (
-    <div className="app">
-      <Header cartCount={cartCount} />
-      <SectionTitle total={products.length} />
-      <main>
-        <ProductList
-          products={products}
-          addedItems={addedItems}
-          addToCart={addToCart}
-        />
-      </main>
-    </div>
+   return (
+    <CardProvider>
+      <Router>
+      <div className="app">
+        <Header cartCount={cartCount} />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <SectionTitle total={products.length} />
+                <main>
+                  <ProductList
+                    products={products}
+                    addedItems={addedItems}
+                    addToCart={addToCart}
+                  />
+                </main>
+              </>
+            }
+          />
+          <Route path="/card-form" element={<CardForm />} />
+          <Route path="/card-add" element={<CardAdd />} />
+          <Route path="/card-list" element={<CardList />} />
+        </Routes>
+      </div>
+    </Router>
+  </CardProvider>  
   );
 }
 
