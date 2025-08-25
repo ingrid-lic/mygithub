@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>韓国語学習</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex; flex-direction: column;
+    }
+    body::before {
+      content: "";
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+      z-index: -1;
+    }
+    header {
+      display: flex; align-items: center;
+      padding: 10px 20px;
+      background-color: rgba(255,255,255,0.95);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: fixed; top: 0; width: 100%; z-index: 10;
+    }
+    header img { height: 40px; margin-right: 10px; }
+    header h1 { font-size: 20px; margin: 0; }
+    header .info-btn {
+      margin-left: auto; margin-right: 40px;
+      background-color: #007bff; color: #fff;
+      border: none; padding: 8px 12px;
+      border-radius: 10px; cursor: pointer; font-size: 16px;
+    }
+    header .info-btn:hover { background-color: #0056b3; }
+    .main {
+      flex: 1; display: flex;
+      justify-content: center; align-items: center;
+      padding: 80px 0 40px;
+    }
+    .container {
+      width: 90%; max-width: 700px;
+      background: rgba(255,255,255,0.9);
+      padding: 30px; border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .korean-sentence, .translation {
+      font-size: 28px; font-weight: bold; margin-bottom: 10px;
+    }
+    .translation { font-size: 22px; color: #333; margin-bottom: 20px; }
+    .btn {
+      background-color: #007bff; color: #fff;
+      border: none; padding: 12px 20px; margin: 8px;
+      border-radius: 10px; cursor: pointer; font-size: 16px;
+    }
+    .btn:hover { background-color: #0056b3; }
+    .result-box {
+      display: none; background: #f1f3f5;
+      border-radius: 10px; padding: 20px;
+      margin-top: 20px; text-align: left;
+    }
+    #score-bar {
+      width: 100%; height: 20px;
+      background-color: #dee2e6; margin: 10px 0;
+      border-radius: 10px;
+    }
+    #score-fill {
+      height: 100%; width: 0%;
+      background-color: #28a745; border-radius: 10px;
+    }
+    .highlight-wrong { color: red; font-weight: bold; }
+    audio { margin-top: 10px; width: 100%; }
+    table { display: none; width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td {
+      border: 1px solid #ccc; padding: 6px; text-align: center;
+    }
+    th { background-color: #f1f1f1; }
+    .popup {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center; align-items: center; z-index: 20;
+    }
+    .popup-content {
+      background: #fff; padding: 20px;
+      border-radius: 10px; max-width: 500px; position: relative;
+      text-align: left;
+    }
+    .popup-close {
+      position: absolute; top: 10px; right: 10px;
+      border: none; background: none; font-size: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo">
+    <h1>韓国語学習</h1>
+    <button class="info-btn" onclick="showInfo()">ℹ️ 機能説明</button>
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h2>韓国語 学習</h2>
+      <p>以下の文を声に出して読み、発音を練習しましょう：</p>
+      <div class="korean-sentence" id="sentence">지금 용접 작업 시작하세요.</div>
+      <div class="translation" id="translation">今すぐ溶接作業を始めてください。</div>
+
+      <button class="btn" onclick="speakKorean()">🔊 発音を聞く</button>
+      <button class="btn" onclick="recordAudio()">🎤 発音録音＆評価</button>
+      <button class="btn" onclick="nextSentence()">➡️ 次の文</button>
+
+      <div class="result-box" id="result-box">
+        <strong>発音分析:</strong>
+        <div id="comparison"></div>
+        <div id="score-bar"><div id="score-fill"></div></div>
+        <p>発音スコア: <span id="score">0%</span></p>
+        <audio id="audio-player" controls></audio>
+        <a id="download-link" class="btn" style="display:none;" download="recording.webm">📥 ダウンロード</a>
+      </div>
+
+      <table id="record-table">
+        <thead>
+          <tr><th>#</th><th>原文</th><th>認識結果</th><th>スコア(%)</th></tr>
+        </thead>
+        <tbody id="record-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <button class="popup-close" onclick="closeInfo()">✖</button>
+      <div id="popup-text"></div>
+    </div>
+  </div>
+
+  <script>
+    const sentences = [
+      // 대학 생활 관련 문장
+      // { kr: "강의실은 어디에 있습니까?", ja: "講義室はどこですか？" },
+      // { kr: "도서관은 몇 시까지 운영합니까?", ja: "図書館は何時まで営業していますか？" },
+      // { kr: "학점 이수 요건을 알려 주세요.", ja: "単位取得要件を教えてください。" },
+      // { kr: "교수님께 면담 신청을 하고 싶습니다.", ja: "教授に面談を申し込みたいです。" },
+      // { kr: "이번 학기 수강 신청 기간이 언제입니까?", ja: "今学期の履修登録期間はいつですか？" },
+      // { kr: "캠퍼스 셔틀버스는 어디서 탑니까?", ja: "キャンパスシャトルバスはどこで乗りますか？" },
+      // { kr: "등록금 납부 마감일을 알려 주세요.", ja: "授業料の支払い締切日を教えてください。" },
+      // { kr: "기숙사 방 배정 결과를 확인하고 싶습니다.", ja: "寮の部屋割り結果を確認したいです。" },
+      // { kr: "중간고사 일정은 어떻게 되나요?", ja: "中間試験の日程はどうなっていますか？" },
+      // { kr: "학생회관에서 동아리 활동을 할 수 있습니까?", ja: "学生会館でサークル活動ができますか？" },
+
+      // // 명동 거리 관련 문장
+      // { kr: "명동역까지 어떻게 가나요?", ja: "明洞駅までどうやって行きますか？" },
+      // { kr: "여기 추천할 만한 음식점이 있습니까?", ja: "ここでおすすめのレストランはありますか？" },
+      // { kr: "이 물건 가격이 얼마인가요?", ja: "この商品はいくらですか？" },
+      // { kr: "화장실은 어디에 있습니까?", ja: "トイレはどこですか？" },
+      // { kr: "한국 전통 기념품을 사고 싶습니다.", ja: "韓国の伝統的なお土産を買いたいです。" },
+
+      // BLACKPINK '마지막처럼' 가사 기반 문장
+      { kr: "너 뭔데 자꾸 생각나?", ja: "あなたって何？ずっと思い出しちゃうの。" },
+      { kr: "자존심 상해 애가 타", ja: "プライドが傷ついて、もどかしいの。" },
+      { kr: "얼굴이 뜨겁고 가슴은 계속 뛰어", ja: "顔が熱くて、心臓がドキドキしてる。" },
+      { kr: "내 몸이 맘대로 안 돼, 어지러워", ja: "体が思うように動かなくて、めまいがする。" },
+      { kr: "넌 한 줌의 모래 같아", ja: "あなたは一握りの砂みたい。" },
+      { kr: "잡힐 듯 잡히지 않아", ja: "掴めそうで掴めない。" },
+      { kr: "넌 쉽지 않은 걸, 그래서 더 끌려", ja: "簡単じゃないから、もっと惹かれるの。" },
+      { kr: "내 맘이 맘대로 안 돼, 어이없어", ja: "気持ちが思い通りにならなくて、呆れるわ。" },
+      { kr: "지금 너를 원하는 내 숨결이 느껴지니?", ja: "今、あなたを求める私の息づかいが聞こえる？" },
+      { kr: "널 바라보고 있어도 missing you", ja: "見つめていても会いたい気持ちは消えないの。" },
+      { kr: "서툰 날, won't you set me free?", ja: "不器用な私を、解き放ってくれない？" },
+      { kr: "Baby, 날 터질 것처럼 안아줘", ja: "ベイビー、弾けそうなくらい抱きしめて。" },
+      { kr: "그만 생각해, 뭐가 그리 어려워?", ja: "もう考えすぎないで、そんなに難しいこと？" },
+      { kr: "거짓말처럼 키스해줘", ja: "嘘みたいにキスしてよ。" },
+      { kr: "내가 너에게 마지막 사랑인 것처럼", ja: "私があなたの最後の恋人であるかのように。" },
+      { kr: "마지막 밤인 것처럼, love", ja: "最後の夜のように、愛して。" },
+      { kr: "내일 따윈 없는 것처럼, love", ja: "明日なんてないかのように、愛して。" },
+      { kr: "시간은 흘러가는데, 마음만 급해지지", ja: "時間は流れていくけど、気持ちだけが焦ってる。" },
+      { kr: "내 세상은 너 하나만 missing you", ja: "私の世界にはあなただけ、会いたくてたまらないの。" },
+      { kr: "One, two, three, 새로운 시작이야", ja: "ワン、ツー、スリー、新たな始まりよ。" },
+      { kr: "절대 뒤돌아보진 않을 거니까", ja: "絶対に振り返らないから。" },
+      { kr: "날 너에게 던지면, 너는 날 꼭 잡아줘", ja: "私をあなたに投げたら、しっかり受け止めてね。" },
+      { kr: "세상은 우릴 꺾지 못할 테니까", ja: "世界は私たちを壊せないから。" }
+    ];
+
+
+    let idx = 0, mediaRecorder, audioChunks = [], recordCount = 0;
+
+    function speakKorean() {
+      const u = new SpeechSynthesisUtterance(sentences[idx].kr);
+      u.lang = 'ko-KR';
+      speechSynthesis.speak(u);
+    }
+    function nextSentence() {
+      idx = (idx + 1) % sentences.length;
+      document.getElementById("sentence").innerText = sentences[idx].kr;
+      document.getElementById("translation").innerText = sentences[idx].ja;
+      document.getElementById("result-box").style.display = 'none';
+    }
+    async function recordAudio() {
+      const btn = event.currentTarget;
+      btn.disabled = true; btn.style.backgroundColor = 'red';
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      const recog = new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+      recog.lang = 'ko-KR'; recog.interimResults = false; recog.maxAlternatives = 1;
+      recog.start(); mediaRecorder.start();
+      recog.onresult = e => {
+        const spoken = e.results[0][0].transcript;
+        mediaRecorder.stop();
+        const score = levenshteinScore(sentences[idx].kr, spoken);
+        document.getElementById("comparison").innerHTML = highlightDiff(sentences[idx].kr, spoken);
+        document.getElementById("score").innerText = score + '%';
+        document.getElementById("score-fill").style.width = score + '%';
+        document.getElementById("result-box").style.display = 'block';
+        recordCount++;
+        document.getElementById("record-body")
+          .insertAdjacentHTML('beforeend',
+            `<tr><td>${recordCount}</td>
+                 <td>${sentences[idx].kr}</td>
+                 <td>${spoken}</td>
+                 <td>${score}</td></tr>`);
+        document.getElementById("record-table").style.display = 'table';
+        btn.disabled = false; btn.style.backgroundColor = '#007bff';
+      };
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks,{type:'audio/webm'});
+        const url = URL.createObjectURL(blob);
+        document.getElementById("audio-player").src = url;
+        const dl = document.getElementById("download-link");
+        dl.href = url; dl.style.display = 'inline-block';
+      };
+      recog.onerror = () => { btn.disabled = false; btn.style.backgroundColor = '#007bff'; };
+    }
+    function levenshteinScore(a,b) {
+      const m=[]; const n=a.length; const p=b.length;
+      for(let i=0;i<=p;i++){ m[i]=[i]; }
+      for(let j=0;j<=n;j++){ m[0][j]=j; }
+      for(let i=1;i<=p;i++){
+        for(let j=1;j<=n;j++){
+          m[i][j] = b[i-1]===a[j-1]
+            ? m[i-1][j-1]
+            : Math.min(m[i-1][j]+1, m[i][j-1]+1, m[i-1][j-1]+1);
+        }
+      }
+      const dist = m[p][n];
+      return Math.max(0, Math.round((1 - dist/n)*100));
+    }
+    function highlightDiff(exp,spk) {
+      let out=''; const L=Math.min(exp.length,spk.length);
+      for(let i=0;i<L;i++){
+        out += exp[i]===spk[i] ? exp[i] : `<span class="highlight-wrong">${spk[i]}</span>`;
+      }
+      if(spk.length>exp.length){
+        out += `<span class="highlight-wrong">${spk.slice(exp.length)}</span>`;
+      }
+      return `<p><strong>認識結果:</strong> ${out}</p>`;
+    }
+    function showInfo(){
+      // 팝업에 표시할 일본어 안내문
+      const txt = 
+        '🔊 <strong>発音を聞く</strong>：システムの音声で韓国語の文を読み上げます。<br>' +
+        '🎤 <strong>発音録音＆評価</strong>：あなたの発音を録音し、正しい文と比較してスコアを算出します。<br>' +
+        '➡️ <strong>次の文</strong>：次の韓国語の文に切り替えます。<br>' +
+        'ℹ️ <strong>機能説明</strong>：このポップアップを表示します。';
+
+      document.getElementById("popup-text").innerHTML = txt;
+      document.getElementById("popup").style.display = 'flex';
+
+      // 일본어로 안내문을 읽어주는 음성 합성
+      const utterance = new SpeechSynthesisUtterance(
+        '発音を聞く：システムの音声で韓国語の文を読み上げます。' +
+        '発音録音＆評価：あなたの発音を録音し、正しい文と比較してスコアを算出します。' +
+        '次の文：次の韓国語の文に切り替えます。' +
+        '機能説明：このポップアップを表示します。'
+      );
+      utterance.lang = 'ja-JP';
+      speechSynthesis.speak(utterance);
+    }
+
+    function closeInfo(){
+      document.getElementById("popup").style.display = 'none';
+    }
+    window.onload = () => { nextSentence(); };
+  </script>
+</body>
+</html>
