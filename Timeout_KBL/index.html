@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice Transcriber — Whisper + 브라우저 번역</title>
+
+  <!-- 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --primary: #f97316;            /* 주황색 */
+      --primary-dark: #ea580c;       /* 어두운 주황색 */
+      --success: #10b981;
+      --error: #ef4444;
+      --bg1: #fff7ed;                /* 밝은 오렌지 배경 */
+      --bg2: #ffedd5;                /* 중간 오렌지 배경 */
+      --bg3: #fed7aa;                /* 카드 배경 */
+      --text: #1e1e1e;               /* 어두운 글자색 */
+      --muted: #4b5563;              /* 약간 연한 회색 */
+      --border: rgba(0,0,0,0.12);
+      --glass: rgba(255,255,255,0.4);
+      --glass-border: rgba(0,0,0,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(800px 400px at 20% 85%, rgba(255, 159, 64, 0.25), transparent 60%),
+        radial-gradient(700px 400px at 80% 15%, rgba(255, 99, 71, 0.2), transparent 60%),
+        radial-gradient(900px 500px at 50% 40%, rgba(255, 204, 128, 0.2), transparent 60%);
+      filter: blur(0.2px);
+      animation: bgShift 18s ease-in-out infinite;
+    }
+
+    @keyframes bgShift {
+      0%, 100% { transform: scale(1) }
+      50% { transform: scale(1.05) }
+    }
+
+    .card {
+      width: 95%; max-width: 640px;
+      background: var(--glass); backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px; padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.15);
+    }
+
+    .title {
+      font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: .35rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .row {
+      display: flex; gap: .6rem; flex-wrap: wrap; align-items: center;
+      margin: 10px 0 16px;
+    }
+
+    label {
+      color: var(--muted); font-size: .95rem;
+    }
+
+    select {
+      appearance: none;
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: .6rem .85rem;
+      border-radius: 12px;
+      font-size: .95rem;
+    }
+
+    .mic {
+      display: flex; align-items: center; justify-content: center;
+      width: 110px; height: 110px; border-radius: 50%;
+      border: none; cursor: pointer; margin: 14px 0 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      box-shadow: 0 14px 36px rgba(249, 115, 22, 0.35);
+      transition: transform .15s ease, box-shadow .2s ease, background .3s ease;
+      user-select: none;
+    }
+
+    .mic:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 44px rgba(249, 115, 22, 0.45);
+    }
+
+    .mic:active {
+      transform: translateY(0) scale(.98);
+    }
+
+    .mic.rec {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 8px 28px rgba(239, 68, 68, .35) }
+      50% {
+        box-shadow:
+          0 8px 28px rgba(239, 68, 68, .6),
+          0 0 0 12px rgba(239, 68, 68, .10),
+          0 0 0 22px rgba(239, 68, 68, .06)
+      }
+      100% { box-shadow: 0 8px 28px rgba(239, 68, 68, .35) }
+    }
+
+    .status {
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .panel {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin: 8px 0;
+    }
+
+    .panel h4 {
+      font-size: 1rem;
+      color: #7c2d12;
+      margin-bottom: .5rem;
+    }
+
+    .panel .text {
+      font-size: 1.02rem;
+      line-height: 1.5;
+    }
+
+    .result {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .ok {
+      color: var(--success);
+      background: rgba(16, 185, 129, .12);
+      border-color: rgba(16, 185, 129, .25);
+    }
+
+    .err {
+      color: var(--error);
+      background: rgba(239, 68, 68, .12);
+      border-color: rgba(239, 68, 68, .25);
+    }
+
+    .audio {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 6px;
+    }
+
+    /* icon */
+    @font-face {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-weight: 400;
+      src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v179/kfOMCnqEu92Fr1Mu4mxKKTU1K_WzL9h_gQ-A.woff2) format('woff2');
+    }
+
+    .mi {
+      font-family: 'Material Symbols Outlined';
+      font-size: 34px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Timeout Summary</div>
+    <div class="subtitle">마이크 녹음 → 서버(Whisper) 한국어 전사 & 영어 번역 → 영어 외는 브라우저에서 번역 → LLM으로 내용 요약.</div>
+
+    <div class="row">
+      <label>번역 대상</label>
+      <select id="target">
+        <option value="en">영어(서버: Whisper)</option>
+        <option value="ja">일본어(브라우저)</option>
+        <option value="zh-CN">중국어 간체(브라우저)</option>
+        <option value="zh-TW">중국어 번체(브라우저)</option>
+        <option value="vi">베트남어(브라우저)</option>
+        <option value="es">스페인어(브라우저)</option>
+        <option value="fr">프랑스어(브라우저)</option>
+        <option value="de">독일어(브라우저)</option>
+      </select>
+    </div>
+
+    <button id="btn" class="mic" aria-label="녹음 시작/종료"><span class="mi">mic</span></button>
+    <div id="status" class="status">마이크 버튼을 눌러 녹음을 시작하세요</div>
+
+    <div class="panel">
+      <h4>감독 지시 전사 결과(한국어)</h4>
+      <div id="ko" class="text">-</div>
+    </div>
+    <div class="panel">
+      <h4>감독 지시 전체 번역 영문(Whisper)</h4>
+      <div id="en-full" class="text">-</div>
+    </div>
+    <div class="panel">
+      <h4>감독 지시 요약 영문(Gemini AI)</h4>
+      <div id="en" class="text">-</div>
+    </div>
+    <div class="panel">
+      <h4>감독 지시 추가 번역(브라우저)</h4>
+      <div id="extra" class="text">-</div>
+      <div class="hint">영어 외 언어를 선택하면 브라우저 번역 API를 사용하여 한국어 원문을 번역합니다.</div>
+    </div>
+
+    <audio id="player" class="audio" controls style="display:none"></audio>
+    <div id="msg" class="result" style="display:none"></div>
+  </div>
+
+  <script>
+    // 서버 주소: 필요시 본인 환경에 맞게 변경
+    const API_BASE = "http://34.64.191.67:5021"; // 또는 "http://127.0.0.1:5000"
+
+    const btn = document.getElementById('btn');
+    const statusEl = document.getElementById('status');
+    const targetSel = document.getElementById('target');
+    const koEl = document.getElementById('ko');
+    const enEl = document.getElementById('en');
+    const extraEl = document.getElementById('extra');
+    const msgEl = document.getElementById('msg');
+    const player = document.getElementById('player');
+
+    let isRec = false, mediaRecorder = null, chunks = [];
+
+    function showMsg(text, ok=true){
+      msgEl.textContent = text;
+      msgEl.className = 'result ' + (ok ? 'ok' : 'err');
+      msgEl.style.display = 'block';
+    }
+    function clearMsg(){
+      msgEl.textContent = ''; msgEl.style.display = 'none';
+    }
+
+    // ======== 브라우저 번역 API 사용 ========
+    async function browserTranslate(text, targetLang) {
+      // Chrome의 Translation API 사용 (실험적 기능)
+      if ('translation' in window && 'createTranslator' in window.translation) {
+        try {
+          const translator = await window.translation.createTranslator({
+            sourceLanguage: 'ko',
+            targetLanguage: targetLang
+          });
+          const result = await translator.translate(text);
+          return result;
+        } catch (e) {
+          console.warn('Chrome Translation API 실패:', e);
+        }
+      }
+
+      // Google Translate 웹 API 사용 (간단한 방법)
+      try {
+        const encodedText = encodeURIComponent(text);
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=${targetLang}&dt=t&q=${encodedText}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+          return data[0][0][0];
+        }
+      } catch (e) {
+        console.warn('Google Translate API 실패:', e);
+      }
+
+      // MyMemory API 사용 (백업)
+      try {
+        const encodedText = encodeURIComponent(text);
+        const url = `https://api.mymemory.translated.net/get?q=${encodedText}&langpair=ko|${targetLang}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data.responseData && data.responseData.translatedText) {
+          return data.responseData.translatedText;
+        }
+      } catch (e) {
+        console.warn('MyMemory API 실패:', e);
+      }
+
+      throw new Error('모든 번역 API 실패');
+    }
+
+    // ======== 녹음 토글 ========
+    btn.addEventListener('click', async () => {
+      if (!isRec) {
+        try{
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          chunks = [];
+          mediaRecorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+          mediaRecorder.onstop = onStop;
+          mediaRecorder.start();
+          isRec = true;
+          btn.classList.add('rec');
+          statusEl.textContent = '녹음 중... 다시 누르면 종료';
+          clearMsg();
+          koEl.textContent = '-'; enEl.textContent='-'; extraEl.textContent='-';
+        }catch(e){
+          showMsg('마이크 접근 실패. 브라우저 권한을 확인하세요.', false);
+        }
+      } else {
+        mediaRecorder && mediaRecorder.stop();
+      }
+    });
+
+    // ======== 녹음 종료 → 서버 전송 → 결과 표시 → (필요 시) 브라우저 번역 ========
+    async function onStop(){
+      isRec = false;
+      btn.classList.remove('rec');
+      statusEl.textContent = '처리 중...';
+
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const form = new FormData();
+      form.append('audio', blob, `mic-${Date.now()}.webm`);
+
+      try {
+        const resp = await fetch(`${API_BASE}/upload_audio`, { method: 'POST', body: form });
+        const data = await resp.json();
+
+        if (!resp.ok || !data.success) {
+          showMsg(data.message || '서버 오류', false);
+          statusEl.textContent = '다시 시도하세요';
+          return;
+        }
+
+        const koText = data.data.asr_text_ko || '';
+        const enFullText = data.data["text-en"] || '';
+        const aiText = data.data.ai_response || '';
+      
+        koEl.textContent = koText || '-';
+        document.getElementById('en-full').textContent = enFullText || '-';
+        enEl.textContent = aiText || '-';  // 이제는 영어 번역 대신 요약 결과
+
+        // TTS 오디오 재생
+        if (data.data.audio_url) {
+          player.src = `${API_BASE}${data.data.audio_url}`;
+          player.style.display = 'block';
+        }
+
+        // 타겟이 영어면 Gemini 요약 결과 사용, 아니면 브라우저 번역 수행
+        const tgt = targetSel.value;
+        if (tgt === 'en') {
+          extraEl.textContent = '(영어 선택: Gemini 요약 결과 사용)';
+          showMsg('전사 및 요약 + TTS 완료', true);
+        } else {
+          extraEl.textContent = '(브라우저 번역 진행 중...)';
+          try {
+            const translatedText = await browserTranslate(koText, tgt);
+            extraEl.textContent = translatedText || '(번역 결과 없음)';
+            showMsg('전사 완료 + 브라우저 번역 완료', true);
+          } catch (e) {
+            extraEl.textContent = '(브라우저 번역 실패: ' + e.message + ')';
+            showMsg('브라우저 번역 실패: ' + (e?.message || e), false);
+          }
+        }
+
+        statusEl.textContent = '마이크 버튼을 눌러 녹음을 시작하세요';
+      } catch (e) {
+        showMsg('네트워크 오류: 서버에 연결할 수 없습니다.', false);
+        statusEl.textContent = '다시 시도하세요';
+      }
+    }
+
+    // 스페이스바로 녹음 토글
+    document.addEventListener('keydown', (e)=>{
+      if (e.code === 'Space'){ e.preventDefault(); btn.click(); }
+    });
+  </script>
+</body>
+</html>
