@@ -70,7 +70,8 @@ function CardAdd() {
   return (
     <div className="card-add-container">
       <div className="header">
-        <button className="back-button" onClick={goBack}>&lt; &nbsp; 카드 추가</button>
+        
+        <button className="prev-button" onClick={goBack}><h4>{'< 카드 추가'}</h4></button>
       </div>
 
       <div className="card-visual">
@@ -115,7 +116,7 @@ function CardAdd() {
             type="text"
             value={ownerName}
             onChange={(e) => setOwnerName(e.target.value)}
-            placeholder="카드에 표시된 이름"
+            placeholder="카드에 표시된 이름과 동일하게 입력하세요."
             required
           />
         </label>

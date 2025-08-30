@@ -1,0 +1,142 @@
+.cart-page {
+  padding: 16px;
+  max-width: 429px;
+  margin: 0 auto;
+  font-family: 'Pretendard', sans-serif;
+}
+
+.cart-list {
+  list-style: none;
+  padding: 0;
+}
+
+.cart-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.item-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.count-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.count-control button {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+}
+
+.remove-button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.cart-total {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 16px;
+  text-align: right;
+}
+
+.checkout-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.cart-header {
+  margin-bottom: 16px;
+}
+
+.cart-top-bar {
+  background-color: #000;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.back-button {
+  color: white;
+  font-size: 24px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.cart-title-section {
+  margin-top: 12px;
+}
+
+.payment-summary {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.summary-row.total {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.label {
+  color: #333;
+}
+
+.value {
+  color: #000;
+}
+
+
+.checkout-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #000;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.item-count-text {
+  font-size: 14px;
+  color: #555;
+  margin-top: 4px;
+}

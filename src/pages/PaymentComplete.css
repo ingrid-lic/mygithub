@@ -1,0 +1,33 @@
+.payment-complete-container {
+  max-width: 429px;
+  margin: 0 auto;
+  padding: 24px 24px 80px;
+  text-align: center;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-height: 600px;
+}
+
+.complete-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.complete-summary,
+.complete-amount {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.go-to-list-button {
+  width: 100%;
+  padding: 16px;
+  background-color: yellow;
+  color: black;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}

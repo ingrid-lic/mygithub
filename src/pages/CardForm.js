@@ -17,7 +17,7 @@ const CardForm = () => {
       </div>
 
       <div className="card-form-subtext">
-        새로운 카드를 입력해주세요.
+        새로운 카드를 등록해주세요.
       </div>
 
       <div className="card-add-area" onClick={handleAddCard}>

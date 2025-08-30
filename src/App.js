@@ -1,72 +1,49 @@
 import React, { useState } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import CardForm from './pages/CardForm';
 import CardAdd from './pages/CardAdd';
 import CardList from './pages/CardList';
+import CartPage from './pages/CartPage';
+import ProductDetail from './pages/ProductDetail';
+import PaymentComplete from "./pages/PaymentComplete";
 import { CardProvider } from './context/CardContext';
+import { store } from './redux/store';
+import { addToCart } from './redux/cartSlice';
 import './App.css';
 
-const products = [
-  {
-    id: 1,
-    image: '/shopping_img/shoes1.jpg',
-    brand: '브랜드 A',
-    desc: '편안하고 착용감이 좋은 신발',
-    price: '₩35,000',
-  },
-  {
-    id: 2,
-    image: '/shopping_img/shoes2.jpg',
-    brand: '브랜드 A',
-    desc: '힙한 컬러가 매력적인 신발',
-    price: '₩25,000',
-  },
-  {
-    id: 3,
-    image: '/shopping_img/shoes3.jpg',
-    brand: '브랜드 B',
-    desc: '편안하고 착용감이 좋은 신발',
-    price: '₩35,000',
-  },
-  {
-    id: 4,
-    image: '/shopping_img/shoes4.jpg',
-    brand: '브랜드 B',
-    desc: '힙한 컬러가 매력적인 신발',
-    price: '₩25,000',
-  },
-  {
-    id: 5,
-    image: '/shopping_img/shoes5.jpg',
-    brand: '브랜드 C',
-    desc: '편안하고 착용감이 좋은 신발',
-    price: '₩35,000',
-  },
-  {
-    id: 6,
-    image: '/shopping_img/shoes6.jpg',
-    brand: '브랜드 C',
-    desc: '힙한 컬러가 매력적인 신발',
-    price: '₩25,000',
-  },
-];
+import products from './data/Products';
 
-function Header({ cartCount }) {
+function Header() {
+  const navigate = useNavigate();
+  const cartItems = useSelector(state => state.cart);
+
+  const handleCartClick = () => {
+    navigate('/cart');
+  };
+
   return (
     <header>
       <div className="header-container">
         <h1>ShoeKing</h1>
         <div className="cart-action-group">
-          {cartCount > 0 && (
-            <button className="cart-count-button">{cartCount}개 담김</button>
+          {cartItems.length > 0 && (
+            <button className="cart-count-button">{cartItems.length}개 담김</button>
           )}
-          <img src="/shopping_img/Shopping_cart.png" alt="장바구니" className="cart-icon" />
+          <img
+            src={process.env.PUBLIC_URL + "/shopping_img/Shopping_cart.png"}
+            alt="장바구니"
+            className="cart-icon"
+            onClick={handleCartClick}
+          />
         </div>
       </div>
     </header>
   );
 }
+
+
 
 function SectionTitle({ total }) {
   return (
@@ -77,33 +54,57 @@ function SectionTitle({ total }) {
   );
 }
 
-function ProductItem({ product, isAdded, onAdd }) {
+function ProductItem({ product }) {
+  const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart);
   const navigate = useNavigate();
+
+  const handleItemClick = () => {
+    navigate(`/product/${product.id}`);
+  };
+
+  const isAdded = cartItems.some(item => item.id === product.id);
+
+  const handleAddToCart = () => {
+    if (!isAdded) {
+      dispatch(addToCart({ ...product, count: 1 }));
+    }
+  };
 
   const handlePurchaseClick = () => {
     navigate('/card-form');
   };
 
   return (
-    <div className="product-item">
-      <img src={product.image} alt={`상품 이미지 ${product.id}`} />
+    <div className="product-item" onClick={handleItemClick}>
+      <img src={process.env.PUBLIC_URL + product.image} alt={`상품 이미지 ${product.id}`} />
       <h2 className="product-name">{product.brand}</h2>
       <p className="product-desc">{product.desc}</p>
       <p className="price">{product.price}</p>
       <div className="button-group">
         <button
           className={`add-to-cart ${isAdded ? 'clicked' : ''}`}
-          onClick={() => onAdd(product.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddToCart();
+          }}
         >
           {isAdded ? '담김!' : '담기'}
         </button>
-        <button className="purchase-button" onClick={handlePurchaseClick}>
+        <button
+          className="purchase-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePurchaseClick();
+          }}
+        >
           구매
         </button>
       </div>
     </div>
   );
 }
+
 
 function ProductList({ products, addedItems, addToCart }) {
   return (
@@ -133,6 +134,7 @@ function App() {
 
    return (
     <CardProvider>
+      <Provider store={store}>
       <Router>
       <div className="app">
         <Header cartCount={cartCount} />
@@ -155,9 +157,13 @@ function App() {
           <Route path="/card-form" element={<CardForm />} />
           <Route path="/card-add" element={<CardAdd />} />
           <Route path="/card-list" element={<CardList />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/payment-complete" element={<PaymentComplete />} />
         </Routes>
       </div>
     </Router>
+    </Provider>
   </CardProvider>  
   );
 }
